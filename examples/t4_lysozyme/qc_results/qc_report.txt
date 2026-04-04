@@ -1,0 +1,35 @@
+======================================================================
+FEP+ RBFE QC Report — T4 Lysozyme L99A (181L)
+======================================================================
+
+Reference ligand: toluene
+Ligands: 5
+Edges: 6
+Completed: 5/6
+
+--- Per-Ligand Results (ddG in kcal/mol, ref = toluene) ---
+Ligand                     Pred      Err        Exp       Diff
+--------------------------------------------------------------
+  p-xylene               1.49     0.41    -0.47       1.96
+  ethylbenzene          -0.50     0.41     0.42      -0.92
+  chlorobenzene         -0.77     0.40     0.07      -0.84
+  toluene                0.00     0.40     0.00       0.00
+  benzene               -0.28     0.40     0.30      -0.58
+
+MUE  = 0.86 kcal/mol
+RMSE = 1.07 kcal/mol
+N    = 5
+
+--- Per-Edge Details ---
+Edge                                  Complex dG   Solvent dG        ddG     Status
+-----------------------------------------------------------------------------------
+  ethylbenzene -> p-xylene              -13.9854     -16.0216     2.0362         OK
+  toluene -> p-xylene                    -6.6752      -8.1163     1.4411         OK
+  ethylbenzene -> toluene                -7.4393      -7.8957     0.4564         OK
+  toluene -> chlorobenzene               MISSING       3.5914        N/A INCOMPLETE
+  chlorobenzene -> benzene               -0.0378      -0.5279     0.4902         OK
+  toluene -> benzene                      2.7786       3.0539    -0.2753         OK
+
+--- QC Flags ---
+  WARNING: INCOMPLETE edge: toluene -> chlorobenzene
+    Missing: complex leg
