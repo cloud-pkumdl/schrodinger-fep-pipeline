@@ -1,0 +1,44 @@
+# T4 Lysozyme L99A — RBFE pipeline configuration
+# PDB: 181L (T4L L99A + benzene), classic FEP+ benchmark system
+
+job_name: t4l_rbfe
+gpu_id: 1
+protein_file: input/181L.pdb
+ligand_file: input/ligands.smi
+output_dir: output
+
+# Server (override via environment or edit here)
+server:
+  host: cloud@100.71.111.116
+  schrodinger: /opt/schrodinger2025-4
+  workdir: /data2/cloud/schrodinger-skills
+  scratch: /scratch/cloud-fep-pipeline
+
+# Protein/ligand preparation
+prep:
+  ph: 7.0
+  fill_loops: true
+  fill_side_chains: true
+  force_field: OPLS4
+  water_dist: 5.0
+
+# Glide docking
+docking:
+  precision: SP
+  poses_per_lig: 1
+  # grid_center: []  # auto-detect from co-crystallized ligand
+  grid_inner_box: 10.0
+  grid_outer_box: 25.0
+
+# FEP+ settings
+fep:
+  sim_time: 5000       # ps per lambda window (production: 5000, test: 100)
+  lambda_windows: 12   # production: 12, quick test: 6
+  force_field: OPLS4
+  temperature: 300.0
+
+# ABFE settings (for single-ligand absolute binding)
+abfe:
+  fep_sim_time: 5000
+  md_sim_time: 500
+  force_field: OPLS4

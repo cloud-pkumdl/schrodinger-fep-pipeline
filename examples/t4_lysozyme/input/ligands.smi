@@ -1,0 +1,13 @@
+# T4 Lysozyme L99A ligand series — well-characterized small hydrophobic binders
+# SMILES	Name	Exp_dG_kcal_mol
+# Source: Morton et al., Biochemistry 1995; Mobley et al., J. Mol. Biol. 2007
+c1ccccc1	benzene	-5.19
+Cc1ccccc1	toluene	-5.49
+CCc1ccccc1	ethylbenzene	-5.07
+Cc1ccc(C)cc1	p-xylene	-5.96
+Clc1ccccc1	chlorobenzene	-5.42
+Oc1ccccc1	phenol	-4.73
+CCCc1ccccc1	propylbenzene	-4.62
+Fc1ccccc1	fluorobenzene	-4.68
+Ic1ccccc1	iodobenzene	-5.46
+c1ccncc1	pyridine	-3.88
