@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [{name = "Cloud", email = "cloud-pkumdl@users.noreply.github.com"}]
-dependencies = ["pyyaml>=6.0"]
+dependencies = ["pyyaml>=6.0", "numpy>=1.24", "matplotlib>=3.7"]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "ruff>=0.4.0"]
