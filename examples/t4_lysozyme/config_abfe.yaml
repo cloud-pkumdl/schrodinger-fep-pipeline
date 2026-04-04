@@ -1,0 +1,12 @@
+# T4 Lysozyme L99A — ABFE pipeline configuration
+# Uses benzene as the test ligand (simplest in the series)
+
+job_name: t4l_abfe_benzene
+gpu_id: 0,3
+complex_file: output/dock_v3_pv.maegz
+output_dir: output
+
+# ABFE settings
+force_field: OPLS4
+fep_sim_time: 5000    # ps per lambda window (production FEP)
+md_sim_time: 1000     # ps MD equilibration

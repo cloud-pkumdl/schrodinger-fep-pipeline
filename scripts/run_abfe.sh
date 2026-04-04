@@ -2,20 +2,20 @@
 # run_abfe.sh — Full ABFE (Absolute Binding Free Energy) pipeline.
 #
 # Runs the complete ABFE workflow:
-#   1. Prepare protein-ligand complex (from docking output or provided MAE)
+#   1. Prepare input (protein-ligand complex from docking output or pv file)
 #   2. Run fep_absolute_binding (complex leg + solvent leg)
-#   3. Collect ΔG_bind results
+#   3. Collect results
 #
 # Usage:
 #   ./run_abfe.sh <config.yaml>
 #   ./run_abfe.sh <config.yaml> --prepare     # Setup only, no MD
-#   ./run_abfe.sh <config.yaml> --gpu 1,2     # Multi-GPU
+#   ./run_abfe.sh <config.yaml> --gpu 0,3     # Use GPUs 0 and 3
 #
 # Input:
 #   config.yaml — Pipeline configuration with ABFE section
 #
 # Output:
-#   <output_dir>/<job_name>-out.fmp — ABFE results (ΔG_bind)
+#   <output_dir>/<job_name>-out.fmp — ABFE results (absolute binding ΔG)
 
 set -euo pipefail
 
@@ -35,13 +35,13 @@ Usage: $(basename "$0") <config.yaml> [options]
 
 Options:
   --prepare       Only prepare input, skip MD simulation
-  --gpu <ids>     Override GPU IDs (e.g., "1" or "1,2")
+  --gpu <ids>     Override GPU IDs (e.g., "0,3" for GPUs 0 and 3)
   -h, --help      Show this help
 
 Examples:
   $(basename "$0") config.yaml                    # Full ABFE
   $(basename "$0") config.yaml --prepare          # Prepare only
-  $(basename "$0") config.yaml --gpu 1,2          # Multi-GPU
+  $(basename "$0") config.yaml --gpu 0,3          # Multi-GPU
 EOF
     exit 1
 }
@@ -63,7 +63,7 @@ done
 
 yaml_get() {
     local key="$1" file="$2"
-    grep -E "^${key}:" "$file" | head -1 | sed "s/^${key}:[[:space:]]*//" | tr -d '"' | tr -d "'"
+    grep -E "^${key}:" "$file" | head -1 | sed "s/^${key}:[[:space:]]*//' | tr -d '"' | tr -d "'"
 }
 
 JOB_NAME=$(yaml_get "job_name" "$CONFIG_FILE")
@@ -76,18 +76,17 @@ FORCE_FIELD="${FORCE_FIELD:-OPLS4}"
 FEP_TIME=$(yaml_get "fep_sim_time" "$CONFIG_FILE")
 FEP_TIME="${FEP_TIME:-5000}"
 MD_TIME=$(yaml_get "md_sim_time" "$CONFIG_FILE")
-MD_TIME="${MD_TIME:-500}"
+MD_TIME="${MD_TIME:-1000}"
 
-# GPU setup
+# GPU setup — use CUDA_VISIBLE_DEVICES since schrodinger.hosts custom
+# files are ignored in Schrödinger 2025-4
 GPUS="${GPU_OVERRIDE:-$(yaml_get "gpu_id" "$CONFIG_FILE")}"
-GPUS="${GPUS:-1}"
+GPUS="${GPUS:-0}"
 
 if [[ "$GPUS" == *","* ]]; then
-    GPU_ENV="CUDA_VISIBLE_DEVICES=${GPUS}"
     GPU_COUNT=$(echo "$GPUS" | tr ',' '\n' | wc -l)
     SUBHOST="localhost:${GPU_COUNT}"
 else
-    GPU_ENV="CUDA_VISIBLE_DEVICES=${GPUS}"
     SUBHOST="localhost:1"
 fi
 
@@ -115,24 +114,23 @@ zeus_upload "$COMPLEX_FILE" "$COMPLEX_BASE"
 
 # ── Run ABFE ─────────────────────────────────────────────────────────
 
-ABFE_CMD="$GPU_ENV $SCHRODINGER/fep_absolute_binding \
-    '$SCRATCH/$COMPLEX_BASE' \
-    -ff $FORCE_FIELD \
-    -fep-sim-time $FEP_TIME \
-    -md-sim-time $MD_TIME \
-    -HOST localhost \
-    -SUBHOST $SUBHOST \
-    -JOBNAME $JOB_NAME"
+# Build the command — note: -ppj controls GPUs per subjob (default: 4
+# for multi-GPU parallelism within one edge; 1 for single-GPU).
+# -SUBHOST localhost:N runs N subjobs concurrently across N GPUs.
+ABFE_ARGS="-ff $FORCE_FIELD -fep-sim-time $FEP_TIME -md-sim-time $MD_TIME"
+ABFE_ARGS="$ABFE_ARGS -HOST localhost -SUBHOST $SUBHOST -JOBNAME $JOB_NAME -ppj 1"
 
 if $PREPARE_ONLY; then
-    ABFE_CMD="$ABFE_CMD -prepare"
+    ABFE_ARGS="$ABFE_ARGS -prepare"
     log_info "Running ABFE in prepare-only mode"
 else
     log_info "Running ABFE (FEP ${FEP_TIME}ps, MD ${MD_TIME}ps)"
     log_warn "ABFE is computationally expensive. Consider --prepare first."
 fi
 
-zeus "cd '$SCRATCH' && $ABFE_CMD 2>&1 | tail -20"
+zeus "cd '$SCRATCH' && CUDA_VISIBLE_DEVICES=$GPUS $SCHRODINGER/fep_absolute_binding \
+    '$SCRATCH/$COMPLEX_BASE' \
+    $ABFE_ARGS 2>&1 | tail -20"
 
 # ── Collect results ──────────────────────────────────────────────────
 
@@ -142,5 +140,5 @@ zeus_download "$SCRATCH/${JOB_NAME}.log" "$OUTPUT_DIR/${JOB_NAME}.log" 2>/dev/nu
 
 log_info "=== ABFE Pipeline Complete ==="
 log_info "Results: $OUTPUT_DIR/"
-log_info "  FMP: ${JOB_NAME}-out.fmp (open in Maestro → FEP+ → ABFE panel)"
-log_info "  ΔG_bind values are in the FMP file"
+log_info "  FMP: ${JOB_NAME}-out.fmp (open in Maestro -> FEP+ -> ABFE panel)"
+log_info "  Absolute binding dG values are in the FMP file"
