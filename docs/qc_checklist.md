@@ -61,6 +61,28 @@ Quality control criteria for FEP+ calculations, based on Mey et al., "Best Pract
 - [ ] Correlation time varies smoothly with λ
 - [ ] ΔG changes smoothly with λ (no jumps)
 
+## Per-Edge QC Thresholds
+
+These thresholds apply to individual edges in the perturbation network and should be checked before trusting edge-level ΔΔG values.
+
+| Metric | Good | Marginal | Bad |
+|---------------------|-----------|-------------|-------------|
+| MBAR Overlap (adjacent λ) | ≥ 0.10 | 0.03–0.10 | < 0.03 |
+| RE Exchange Prob (neighbors) | ≥ 0.15 | 0.05–0.15 | < 0.05 |
+| Fwd/Rev Gap (kcal/mol) | < 0.5 | 0.5–1.5 | > 1.5 |
+| Hysteresis (kcal/mol) | < 1 kBT (0.6) | 1–2 kBT | > 2 kBT |
+| Ligand RMSD (Å) | < 2.0 | 2.0–3.0 | > 3.0 |
+| Protein RMSD (Å) | < 2.5 | 2.5–4.0 | > 4.0 |
+
+### What to do when thresholds fail
+
+- **MBAR Overlap < 0.03:** Add more lambda windows (not more simulation time). This is the most effective fix.
+- **RE Exchange < 0.05:** Indicates poor mixing between replicas. Consider adjusting REST parameters or adding lambda windows.
+- **Fwd/Rev Gap > 1.5:** Poor convergence. Extend simulation time (double it) or check for structural instability.
+- **Hysteresis > 2 kBT:** The perturbation is too large or the system is not sampling well. Split into smaller perturbation steps.
+- **Ligand RMSD > 3.0 Å:** Ligand is leaving the binding site. Check the docking pose and consider restraints.
+- **Protein RMSD > 4.0 Å:** Major structural rearrangement. Check if the force field and preparation are appropriate.
+
 ## Overall Quality Assessment
 
 | Metric | Good | Acceptable | Poor |
