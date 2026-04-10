@@ -203,7 +203,11 @@ def plot_convergence(
 
     # Compute final gap and annotate
     final_gap = abs(forward_dg[-1] - reverse_dg[-1])
-    gap_color = "green" if final_gap < FWD_REV_GAP_GOOD else ("orange" if final_gap < FWD_REV_GAP_BAD else "red")
+    gap_color = (
+        "green"
+        if final_gap < FWD_REV_GAP_GOOD
+        else ("orange" if final_gap < FWD_REV_GAP_BAD else "red")
+    )
     ax.annotate(
         f"Final gap: {final_gap:.2f} kcal/mol",
         xy=(0.98, 0.02),
@@ -264,22 +268,52 @@ def plot_ddg_correlation(
     ax.plot([lo, hi], [lo, hi], "k-", linewidth=1, label="y = x")
 
     # +/- 1 kcal/mol bands
-    ax.fill_between([lo, hi], [lo - 1, hi - 1], [lo + 1, hi + 1], alpha=0.10, color="green", label="±1 kcal/mol")
-    ax.fill_between([lo, hi], [lo - 2, hi - 2], [lo + 2, hi + 2], alpha=0.05, color="orange", label="±2 kcal/mol")
+    ax.fill_between(
+        [lo, hi],
+        [lo - 1, hi - 1],
+        [lo + 1, hi + 1],
+        alpha=0.10,
+        color="green",
+        label="±1 kcal/mol",
+    )
+    ax.fill_between(
+        [lo, hi],
+        [lo - 2, hi - 2],
+        [lo + 2, hi + 2],
+        alpha=0.05,
+        color="orange",
+        label="±2 kcal/mol",
+    )
 
     # Data points
     if uncertainties is not None:
         ax.errorbar(
-            exp_ddg, pred_ddg, yerr=uncertainties, fmt="o", color="#1976d2",
-            markersize=7, capsize=3, elinewidth=1, markeredgecolor="white", markeredgewidth=0.5,
+            exp_ddg,
+            pred_ddg,
+            yerr=uncertainties,
+            fmt="o",
+            color="#1976d2",
+            markersize=7,
+            capsize=3,
+            elinewidth=1,
+            markeredgecolor="white",
+            markeredgewidth=0.5,
         )
     else:
-        ax.scatter(exp_ddg, pred_ddg, s=50, c="#1976d2", edgecolors="white", linewidths=0.5, zorder=5)
+        ax.scatter(
+            exp_ddg, pred_ddg, s=50, c="#1976d2", edgecolors="white", linewidths=0.5, zorder=5
+        )
 
     # Label points
     if labels is not None:
         for i, lbl in enumerate(labels):
-            ax.annotate(lbl, (exp_ddg[i], pred_ddg[i]), fontsize=7, textcoords="offset points", xytext=(5, 5))
+            ax.annotate(
+                lbl,
+                (exp_ddg[i], pred_ddg[i]),
+                fontsize=7,
+                textcoords="offset points",
+                xytext=(5, 5),
+            )
 
     # Compute statistics
     n = len(exp_ddg)
@@ -292,7 +326,12 @@ def plot_ddg_correlation(
 
     stats_text = f"N = {n}\nR² = {r2:.3f}\nRMSE = {rmse:.2f} kcal/mol\nMUE = {mue:.2f} kcal/mol"
     ax.text(
-        0.05, 0.95, stats_text, transform=ax.transAxes, fontsize=10, va="top",
+        0.05,
+        0.95,
+        stats_text,
+        transform=ax.transAxes,
+        fontsize=10,
+        va="top",
         bbox={"boxstyle": "round,pad=0.4", "facecolor": "lightyellow", "edgecolor": "gray"},
     )
 
@@ -335,11 +374,20 @@ def plot_hysteresis(
     n = len(edge_labels)
     fig, ax = plt.subplots(figsize=(max(8, n * 0.8), 5))
 
-    colors = ["#4caf50" if h < HYSTERESIS_1KBT else ("#ff9800" if h < 2 * HYSTERESIS_1KBT else "#d32f2f") for h in hysteresis]
+    colors = [
+        "#4caf50" if h < HYSTERESIS_1KBT else ("#ff9800" if h < 2 * HYSTERESIS_1KBT else "#d32f2f")
+        for h in hysteresis
+    ]
     ax.bar(range(n), hysteresis, color=colors, edgecolor="white", linewidth=0.5)
 
     # 1 kBT threshold line
-    ax.axhline(y=HYSTERESIS_1KBT, color="red", linestyle="--", linewidth=1.2, label=f"1 kBT ({HYSTERESIS_1KBT} kcal/mol)")
+    ax.axhline(
+        y=HYSTERESIS_1KBT,
+        color="red",
+        linestyle="--",
+        linewidth=1.2,
+        label=f"1 kBT ({HYSTERESIS_1KBT} kcal/mol)",
+    )
 
     ax.set_xticks(range(n))
     ax.set_xticklabels(edge_labels, rotation=45, ha="right", fontsize=8)
@@ -553,7 +601,11 @@ def generate_qc_report(
 
         # DDG correlation
         exp, pred, labels, unc = generate_mock_ddg_data(quality=mock_quality)
-        generated.append(plot_ddg_correlation(exp, pred, plot_dir / "ddg_correlation.png", labels=labels, uncertainties=unc))
+        generated.append(
+            plot_ddg_correlation(
+                exp, pred, plot_dir / "ddg_correlation.png", labels=labels, uncertainties=unc
+            )
+        )
 
         # Hysteresis
         edge_labels, hyst = generate_mock_hysteresis(quality=mock_quality)

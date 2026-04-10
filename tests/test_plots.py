@@ -90,8 +90,12 @@ class TestConvergencePlot:
         fwd_err = np.full_like(fwd, 0.1)
         rev_err = np.full_like(rev, 0.1)
         out = plot_convergence(
-            fracs, fwd, rev, tmp_path / "conv_err.png",
-            forward_err=fwd_err, reverse_err=rev_err,
+            fracs,
+            fwd,
+            rev,
+            tmp_path / "conv_err.png",
+            forward_err=fwd_err,
+            reverse_err=rev_err,
         )
         assert out.exists()
 
@@ -99,7 +103,9 @@ class TestConvergencePlot:
 class TestDDGCorrelationPlot:
     def test_generates_png(self, tmp_path):
         exp, pred, labels, unc = generate_mock_ddg_data(n_ligands=6, quality="good")
-        out = plot_ddg_correlation(exp, pred, tmp_path / "ddg.png", labels=labels, uncertainties=unc)
+        out = plot_ddg_correlation(
+            exp, pred, tmp_path / "ddg.png", labels=labels, uncertainties=unc
+        )
         assert out.exists()
         assert out.stat().st_size > 0
 
